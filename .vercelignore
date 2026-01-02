@@ -1,0 +1,32 @@
+# Backend files (deploy backend separately)
+backend/
+node_modules/
+.env
+.env.local
+.env.*.local
+
+# Development files
+*.log
+.DS_Store
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+COMMIT_INSTRUCTIONS.md
+setup-git.ps1
+VERCEL_DEPLOYMENT.md
+
+# Docker
+docker-compose.yml
+*.dockerfile
+
+# Testing
+coverage/
+.nyc_output/
+
+# Vercel
+.vercel/

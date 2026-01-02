@@ -32,6 +32,7 @@ coverage/
 # Misc
 *.pem
 .cache/
+.vercel/
 
 # Frontend specific
 frontend/dist/

@@ -26,18 +26,36 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      console.log('AuthContext: Making login request to /auth/login');
       const res = await api.post('/auth/login', { email, password });
+      console.log('AuthContext: Login response received', res.data);
+      
       if (res.data && res.data.token) {
         localStorage.setItem('token', res.data.token);
         setUser(res.data.user);
         return res.data;
       } else {
-        throw new Error('Invalid response from server');
+        console.error('AuthContext: Invalid response structure', res.data);
+        throw new Error('Invalid response from server - missing token');
       }
     } catch (error) {
+      console.error('AuthContext: Login error', {
+        message: error.message,
+        code: error.code,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      
+      // Re-throw with more context if needed
       if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
-        throw new Error('Cannot connect to server. Please make sure the backend is running on port 5000.');
+        throw new Error('Cannot connect to backend server. Please verify VITE_API_URL is set correctly in Vercel environment variables.');
       }
+      
+      // Re-throw CORS errors
+      if (error.message?.includes('CORS')) {
+        throw new Error('CORS error: Backend server is not allowing requests from this domain. Check backend CORS settings.');
+      }
+      
       throw error;
     }
   };

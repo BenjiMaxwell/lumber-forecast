@@ -13,19 +13,45 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate inputs
+    if (!email || !password) {
+      toast.error('Please enter both email and password');
+      return;
+    }
+    
     setLoading(true);
     
     try {
+      console.log('Attempting login for:', email);
       await login(email, password);
+      console.log('Login successful');
       toast.success('Welcome back!');
       navigate('/');
     } catch (error) {
-      const errorMessage = error.response?.data?.error || 
-                          error.response?.data?.message ||
-                          error.message || 
-                          'Login failed. Please check your credentials and ensure the backend server is running.';
-      toast.error(errorMessage);
-      console.error('Login error:', error);
+      console.error('Login error details:', {
+        error,
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      
+      let errorMessage = 'Login failed. ';
+      
+      if (error.response?.data?.error) {
+        errorMessage += error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage += error.response.data.message;
+      } else if (error.message) {
+        errorMessage += error.message;
+      } else {
+        errorMessage += 'Please check your credentials and ensure the backend server is configured correctly.';
+      }
+      
+      toast.error(errorMessage, {
+        autoClose: 5000,
+        position: 'top-center'
+      });
     } finally {
       setLoading(false);
     }

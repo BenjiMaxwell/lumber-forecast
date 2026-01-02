@@ -1,7 +1,35 @@
 import axios from 'axios';
 
+// Get API URL from environment variable or use default
+// In production, set VITE_API_URL to your backend URL (e.g., https://your-backend.railway.app/api)
+const getApiUrl = () => {
+  // Check if we have an explicit API URL set
+  if (import.meta.env.VITE_API_URL) {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    console.log('Using API URL from environment:', apiUrl);
+    return apiUrl;
+  }
+  
+  // In development, use proxy
+  if (import.meta.env.DEV) {
+    console.log('Development mode: Using /api proxy');
+    return '/api';
+  }
+  
+  // In production, warn if no API URL is set
+  console.warn('⚠️ VITE_API_URL is not set! API calls will fail. Please set VITE_API_URL in Vercel environment variables.');
+  console.warn('Current environment:', {
+    MODE: import.meta.env.MODE,
+    DEV: import.meta.env.DEV,
+    PROD: import.meta.env.PROD
+  });
+  
+  // Default to relative path (won't work if backend is on different domain)
+  return '/api';
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: getApiUrl(),
   headers: {
     'Content-Type': 'application/json'
   }
@@ -25,20 +53,45 @@ api.interceptors.response.use(
   (error) => {
     // Handle network errors
     if (!error.response) {
+      let errorMessage = 'Cannot connect to server.';
+      
       if (error.code === 'ECONNREFUSED' || error.message?.includes('Network Error')) {
-        error.message = 'Cannot connect to server. Please ensure the backend is running on port 5000.';
+        errorMessage = 'Cannot connect to backend server. Please check your API URL configuration.';
+      } else if (error.message?.includes('CORS')) {
+        errorMessage = 'CORS error: Backend server is not allowing requests from this domain.';
+      } else if (error.code === 'ERR_NETWORK') {
+        errorMessage = 'Network error: Unable to reach the backend server. Please verify VITE_API_URL is set correctly in Vercel.';
       }
+      
+      // Log detailed error for debugging
+      console.error('API Error Details:', {
+        message: error.message,
+        code: error.code,
+        config: {
+          url: error.config?.url,
+          baseURL: error.config?.baseURL,
+          method: error.config?.method
+        }
+      });
+      
+      error.message = errorMessage;
       return Promise.reject(error);
     }
     
     // Handle HTTP errors
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      // Only redirect if not already on login page
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
+      // No redirect - authentication is disabled
     }
+    
+    // Log HTTP errors
+    console.error('API HTTP Error:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      url: error.config?.url
+    });
+    
     return Promise.reject(error);
   }
 );

@@ -1,20 +1,12 @@
 import React from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { Outlet, NavLink } from 'react-router-dom';
 import { 
   FiHome, FiPackage, FiShoppingCart, FiUsers, 
-  FiTrendingUp, FiBell, FiLogOut 
+  FiTrendingUp, FiBell
 } from 'react-icons/fi';
 import { GiWoodPile } from 'react-icons/gi';
 
 const Layout = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   const navItems = [
     { to: '/', icon: FiHome, label: 'Dashboard' },
@@ -52,15 +44,12 @@ const Layout = () => {
         <div className="sidebar-footer">
           <div className="user-info">
             <div className="user-avatar">
-              {user?.name?.charAt(0).toUpperCase()}
+              <GiWoodPile />
             </div>
             <div className="user-details">
-              <div className="user-name">{user?.name}</div>
-              <div className="user-role">{user?.role}</div>
+              <div className="user-name">LumberFlow</div>
+              <div className="user-role">Inventory System</div>
             </div>
-            <button className="logout-btn" onClick={handleLogout} title="Logout">
-              <FiLogOut />
-            </button>
           </div>
         </div>
       </aside>
